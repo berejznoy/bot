@@ -2,26 +2,20 @@ import { config } from './config'
 import TelegramBot from 'node-telegram-bot-api'
 import axios from 'axios'
 
-const {token} = config
+const {telegramToken: token, track24Token} = config
 const bot = new TelegramBot(token, {polling: true});
 
 
-bot.onText(/\/right/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, 'Максим прав');
-});
-
-bot.onText(/\/wrong/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, 'Максим не прав');
-});
-
-bot.onText(/\/advice/, async (msg) => {
+bot.onText(/\/track (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
     try {
-      const chatId = msg.chat.id
-      const {data: {quoteText}} = await axios.get('https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=ru')
-      bot.sendMessage(chatId, quoteText);
+        const track = match[1];
+        const {data: {data: {events, destinationName}}} = await axios.get(`https://api.track24.ru/tracking.json.php?apiKey=${track24Token}&domain=demo.track24.ru&pretty=true&code=${track}`)
+        const lastEvent = events[events.length - 1]
+        const {operationDateTime, operationAttribute, operationPlaceName} = lastEvent
+        const message = 'Кому: ' + destinationName +'\r\n'+  'Дата: ' + operationDateTime +'\r\n'+ 'Статус: ' + operationAttribute +'\r\n'+ 'Место: ' + operationPlaceName;
+        bot.sendMessage(chatId, message);
     } catch (e) {
-      bot.sendMessage(chatId, 'Упс... ошибка');
+        bot.sendMessage(chatId, 'Упс... Произошла ошибка');
     }
 });

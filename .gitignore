@@ -1,0 +1,13 @@
+.DS_STORE
+node_modules
+dist
+build
+.module-cache
+*.log*
+_nogit
+.idea
+.vscode
+coverage
+$GIT_DIR/source/assets/smev
+stats.json
+tests/pactTests/logs
